@@ -17,41 +17,37 @@ namespace Slide_Show
     {
         static int Main(string[] args)
         {
-            IShellItem pShellItem = null;
-            IShellItemArray pShellItemArray = null;
-            String SlideShowPath = Registry.GetValue("HKEY_CURRENT_USER\\Control Panel\\Desktop", "SlideShowPath", @"C:\Windows\Wallpaper\SlideShow").ToString();
+            String SlideShowPath = Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowPath", @"C:\Windows\Wallpaper\SlideShow").ToString();
             if (SlideShowPath == "")
                 SlideShowPath = @"C:\Windows\Wallpaper\SlideShow";
-            UInt32 SlideShowTick = Convert.ToUInt32(Registry.GetValue("HKEY_CURRENT_USER\\Control Panel\\Desktop", "SlideShowTicks", 1800000));
+            UInt32 SlideShowTick = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowTicks", 1800000));
             if (SlideShowTick == 0)
                 SlideShowTick = 1800000;
-            UInt32 SlideShowOptions = Convert.ToUInt32(Registry.GetValue("HKEY_CURRENT_USER\\Control Panel\\Desktop", "SlideShowShuffle", 0));
+            UInt32 SlideShowOptions = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowShuffle", 0));
             if (SlideShowOptions != 0 && SlideShowOptions != 1)
                 SlideShowOptions = 0;
-            String LockScreenSlideShowPath = Registry.GetValue("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Lock Screen", "LockScreenSlideShowPath", @"C:\Windows\Wallpaper\Lockscreen").ToString();
+            bool SlideShowEnable = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowEnable", 1)) == 1 ? true : false;
+            String LockScreenSlideShowPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowPath", @"C:\Windows\Wallpaper\Lockscreen").ToString();
             if (LockScreenSlideShowPath == "")
                 LockScreenSlideShowPath = @"C:\Windows\Wallpaper\Lockscreen";
-            UInt32 LockScreenSlideShowTick = Convert.ToUInt32(Registry.GetValue("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Lock Screen", "LockScreenSlideShowTicks", 15000));
+            UInt32 LockScreenSlideShowTick = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowTicks", 15000));
             if (LockScreenSlideShowTick == 0)
                 LockScreenSlideShowTick = 15000;
+            bool LockScreenSlideShowEnable = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowEnable", 1)) == 1 ? true : false;
 
             try
             {
-                if (SHCreateItemFromParsingName(SlideShowPath, IntPtr.Zero, typeof(IShellItem).GUID, out pShellItem) == HRESULT.S_OK)
+                if (SlideShowEnable)
                 {
-                    if (SHCreateShellItemArrayFromShellItem(pShellItem, typeof(IShellItemArray).GUID, out pShellItemArray) == HRESULT.S_OK)
-                    {
-                        IDesktopWallpaper pDesktopWallpaper = (IDesktopWallpaper)(new DesktopWallpaperClass());
-                        pDesktopWallpaper.SetSlideshowOptions(
-                            (SlideShowOptions == 0) ? DesktopSlideshowDirection.NoShuffle : DesktopSlideshowDirection.Shuffle,
-                            SlideShowTick
-                        );
-                        pDesktopWallpaper.SetSlideshow(pShellItemArray);
-                        LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick).Wait();
-                        return 0;
-                    }
+                    Wallpaper(SlideShowPath, SlideShowTick, SlideShowOptions);
                 }
-                return 1;
+
+                if (LockScreenSlideShowEnable)
+                {
+                    LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick).Wait();
+                }
+
+                return 0;
             }
             catch
             {
@@ -59,6 +55,23 @@ namespace Slide_Show
             }
         }
 
+        static void Wallpaper(String SlideShowPath, UInt32 SlideShowTick, UInt32 SlideShowOptions)
+        {
+            IShellItem pShellItem = null;
+            IShellItemArray pShellItemArray = null;
+            if (SHCreateItemFromParsingName(SlideShowPath, IntPtr.Zero, typeof(IShellItem).GUID, out pShellItem) == HRESULT.S_OK)
+            {
+                if (SHCreateShellItemArrayFromShellItem(pShellItem, typeof(IShellItemArray).GUID, out pShellItemArray) == HRESULT.S_OK)
+                {
+                    IDesktopWallpaper pDesktopWallpaper = (IDesktopWallpaper)(new DesktopWallpaperClass());
+                    pDesktopWallpaper.SetSlideshowOptions(
+                        (SlideShowOptions == 0) ? DesktopSlideshowDirection.NoShuffle : DesktopSlideshowDirection.Shuffle,
+                        SlideShowTick
+                    );
+                    pDesktopWallpaper.SetSlideshow(pShellItemArray);
+                }
+            }
+        }
         static async Task LockScreen(String path, UInt32 tick)
         {
             try
