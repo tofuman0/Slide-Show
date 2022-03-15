@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitions revision="1.0" schemaVersion="1.0">
+  <policyNamespaces>
+    <target prefix="desktop" namespace="Microsoft.Policies.WindowsDesktop" />
+    <using prefix="windows" namespace="Microsoft.Policies.Windows" />
+  </policyNamespaces>
+  <resources minRequiredRevision="1.0" />
+  <supportedOn>
+    <definitions>
+      <definition name="SUPPORTED_Windows10" displayName="$(string.SUPPORTED_Windows10)" />
+    </definitions>
+  </supportedOn>
+  <categories>
+    <category name="SlideShow" displayName="$(string.SlideShow)">
+      <parentCategory ref="windows:Desktop" />
+    </category>
+  </categories>
+  <policies>
+    <policy name="EnableWallpaper" displayname="$(string.WallpaperEnable)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowEnable">
+	  <parentCategory ref="SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_Windows10" />
+	  <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+	</policy>
+	<policy name="WallpaperPath" displayname="$(string.WallpaperPath)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowPath">
+	  <parentCategory ref="SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_Windows10" />
+	</policy>
+	<policy name="WallpaperTickTime" displayname="$(string.WallpaperTickTime)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowTicks">
+	  <parentCategory ref="SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_Windows10" />
+	</policy>
+	<policy name="WallpaperShuffle" displayname="$(string.WallpaperShuffle)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowShuffle">
+	  <parentCategory ref="SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_Windows10" />
+	  <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+	</policy>
+	
+	<policy name="EnableLockscreen" displayname="$(string.LockscreenEnable)" class="User" required="true" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowEnable">
+	  <parentCategory ref="SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_Windows10" />
+	  <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+	</policy>
+	<policy name="LockscreenPath" displayname="$(string.LockscreenPath)" class="User" required="true" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowPath">
+	  <parentCategory ref="SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_Windows10" />
+	</policy>
+	<policy name="LockscreenTickTime" displayname="$(string.LockscreenTickTime)" class="User" required="true" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowTicks">
+	  <parentCategory ref="SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_Windows10" />
+	</policy>
+  </policies>
+</policyDefinitions>
