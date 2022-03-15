@@ -32,7 +32,7 @@ Set to 0 to disable wallpaper feature
 The location of the images to use for the lockscreen slideshow.  
 #### LockScreenSlideShowTicks
  **Default Value:** 30000  
- **DType:** DWORD (32bit)  
+ **Type:** DWORD (32bit)  
 The ticks to wait before changing image in milliseconds  
 #### LockScreenSlideShowEnable
  **Default Value:** 1  
