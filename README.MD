@@ -1,7 +1,7 @@
 # Slide Show 
 ## About
 A utility used to set windows wallpaper slideshow and lock screen slideshow. This isn't currently possible by group policy so using this utility will load settings from registry and set slideshow to images in a folder. Just will need to add this utility to either start up folder or create scheduled task that runs on user login. All that can be deployed by group policy.
-## Prerequisites
+## Build Prerequisites
 - Window 10 SDK 10.0.19041
 - Universal Windows Platform development
 
