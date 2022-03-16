@@ -10,13 +10,28 @@ using Microsoft.Win32;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.System.UserProfile;
+using System.Diagnostics;
 
 namespace Slide_Show
 {
     class Program
     {
+        static private bool EventlogSourceExists;
         static int Main(string[] args)
         {
+            EventlogSourceExists = CheckOrCreateEventLog();
+            if (EventlogSourceExists == false)
+                WriteEventLog("Unabled to create \"Slide Show\" Eventlog source. User requires write access to eventlog to create source. \"Application\" will be used instead.", EventlogSourceExists, 100, EventLogEntryType.Warning);
+
+            // Check if process is already running
+            // Vercas - https://stackoverflow.com/a/6392077
+            var exists = System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1;
+            if(exists)
+            {
+                WriteEventLog("Slide Show is already running so has closed", EventlogSourceExists);
+                return 1;
+            }
+
             String SlideShowPath = Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowPath", @"C:\Windows\Wallpaper\SlideShow").ToString();
             if (SlideShowPath == "")
                 SlideShowPath = @"C:\Windows\Wallpaper\SlideShow";
@@ -50,31 +65,39 @@ namespace Slide_Show
                 {
                     LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick, LockScreenSlideShowSuffle).Wait();
                 }
-
+                WriteEventLog("Slide Show exited without error.", EventlogSourceExists);
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                WriteEventLog("Slide Show exited with error:\r\n\r\n" + ex.Message, EventlogSourceExists, 101, EventLogEntryType.Error);
                 return 1;
             }
         }
 
         static void Wallpaper(String SlideShowPath, UInt32 SlideShowTick, UInt32 SlideShowOptions, DesktopWallpaperPosition SlideShowPosition)
         {
-            IShellItem pShellItem = null;
-            IShellItemArray pShellItemArray = null;
-            if (SHCreateItemFromParsingName(SlideShowPath, IntPtr.Zero, typeof(IShellItem).GUID, out pShellItem) == HRESULT.S_OK)
+            try
             {
-                if (SHCreateShellItemArrayFromShellItem(pShellItem, typeof(IShellItemArray).GUID, out pShellItemArray) == HRESULT.S_OK)
+                IShellItem pShellItem = null;
+                IShellItemArray pShellItemArray = null;
+                if (SHCreateItemFromParsingName(SlideShowPath, IntPtr.Zero, typeof(IShellItem).GUID, out pShellItem) == HRESULT.S_OK)
                 {
-                    IDesktopWallpaper pDesktopWallpaper = (IDesktopWallpaper)(new DesktopWallpaperClass());
-                    pDesktopWallpaper.SetSlideshowOptions(
-                        (SlideShowOptions == 0) ? DesktopSlideshowDirection.NoShuffle : DesktopSlideshowDirection.Shuffle,
-                        SlideShowTick
-                    );
-                    pDesktopWallpaper.SetPosition(SlideShowPosition);
-                    pDesktopWallpaper.SetSlideshow(pShellItemArray);
+                    if (SHCreateShellItemArrayFromShellItem(pShellItem, typeof(IShellItemArray).GUID, out pShellItemArray) == HRESULT.S_OK)
+                    {
+                        IDesktopWallpaper pDesktopWallpaper = (IDesktopWallpaper)(new DesktopWallpaperClass());
+                        pDesktopWallpaper.SetSlideshowOptions(
+                            (SlideShowOptions == 0) ? DesktopSlideshowDirection.NoShuffle : DesktopSlideshowDirection.Shuffle,
+                            SlideShowTick
+                        );
+                        pDesktopWallpaper.SetPosition(SlideShowPosition);
+                        pDesktopWallpaper.SetSlideshow(pShellItemArray);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                WriteEventLog("Error setting wallpaper:\r\n\r\n" + ex.Message, EventlogSourceExists, 102, EventLogEntryType.Error);
             }
         }
         static async Task LockScreen(String path, UInt32 tick, bool LockScreenSlideShowSuffle)
@@ -105,9 +128,36 @@ namespace Slide_Show
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                WriteEventLog("Error setting lockscreen:\r\n\r\n" + ex.Message, EventlogSourceExists, 103, EventLogEntryType.Error);
+            }
+        }
+
+        static void WriteEventLog(String message, bool EventlogSourceExists, Int32 errorcode = 0, EventLogEntryType type = EventLogEntryType.Information)
+        {
+            EventLog appLog = new EventLog("Application");
+            if (EventlogSourceExists)
+                appLog.Source = "Slide Show";
+            else
+                appLog.Source = "Application";
+            appLog.WriteEntry(message, type, errorcode, 0);
+        }
+
+        static bool CheckOrCreateEventLog()
+        {
+            // Admin permissions are required to create source so if we can't create source we'll use "Application" instead.
+            try
+            {
+                if (!System.Diagnostics.EventLog.SourceExists("Slide Show"))
+                {
+                    System.Diagnostics.EventLog.CreateEventSource("Slide Show", "Application");
+                }
+                return true;
+            }
             catch
             {
-                // On error just end
+                return false;
             }
         }
 
