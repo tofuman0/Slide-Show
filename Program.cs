@@ -37,6 +37,7 @@ namespace Slide_Show
             if (LockScreenSlideShowTick == 0)
                 LockScreenSlideShowTick = 15000;
             bool LockScreenSlideShowEnable = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowEnable", 0)) == 1 ? true : false;
+            bool LockScreenSlideShowSuffle = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowSuffle", 0)) == 1 ? true : false;
 
             try
             {
@@ -47,7 +48,7 @@ namespace Slide_Show
 
                 if (LockScreenSlideShowEnable)
                 {
-                    LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick).Wait();
+                    LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick, LockScreenSlideShowSuffle).Wait();
                 }
 
                 return 0;
@@ -76,7 +77,7 @@ namespace Slide_Show
                 }
             }
         }
-        static async Task LockScreen(String path, UInt32 tick)
+        static async Task LockScreen(String path, UInt32 tick, bool LockScreenSlideShowSuffle)
         {
             try
             {
@@ -89,6 +90,11 @@ namespace Slide_Show
                 }
                 else if (images.Count > 0)
                 {
+                    if(LockScreenSlideShowSuffle)
+                    {
+                        var rand = new Random();
+                        images = images.OrderBy(x => rand.Next()).ToList();
+                    }
                     while (true)
                     {
                         var lockscreenImage = await StorageFile.GetFileFromPathAsync(images[imageOffset++]);
