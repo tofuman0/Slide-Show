@@ -17,19 +17,28 @@ namespace Slide_Show
     class Program
     {
         static private bool EventlogSourceExists;
+        static private readonly Int32 SS_OK           = 0;
+        static private readonly Int32 SS_ERROR        = 1 << 31;
+        static private readonly Int32 SS_WARNING      = 3 << 30;
+        static private readonly Int32 SS_WALLPAPER    = 1 << 0;
+        static private readonly Int32 SS_LOCKSCREEN   = 1 << 1;
+        static private readonly Int32 SS_ACCESS       = 1 << 2;
+        static private readonly Int32 SS_FOLDER       = 1 << 3;
+        static private readonly Int32 SS_FILE         = 1 << 4;
+        static private readonly Int32 SS_REGISTRY     = 1 << 5;
         static int Main(string[] args)
         {
             EventlogSourceExists = CheckOrCreateEventLog();
             if (EventlogSourceExists == false)
-                WriteEventLog("Unabled to create \"Slide Show\" Eventlog source. User requires write access to eventlog to create source. \"Application\" will be used instead.", EventlogSourceExists, 100, EventLogEntryType.Warning);
+                WriteEventLog("Unabled to create \"Slide Show\" Eventlog source. User requires write access to eventlog to create source. \"Application\" will be used instead.", EventlogSourceExists, (UInt16)(SS_WARNING | SS_REGISTRY), EventLogEntryType.Warning);
 
             // Check if process is already running
             // Vercas - https://stackoverflow.com/a/6392077
             var exists = System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1;
             if(exists)
             {
-                WriteEventLog("Slide Show is already running so has closed", EventlogSourceExists);
-                return 1;
+                WriteEventLog("Slide Show is already running so has closed", EventlogSourceExists, (UInt16)(SS_ERROR));
+                return SS_ERROR;
             }
 
             String SlideShowPath = Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowPath", @"C:\Windows\Wallpaper\SlideShow").ToString();
@@ -38,10 +47,10 @@ namespace Slide_Show
             UInt32 SlideShowTick = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowTicks", 1800000));
             if (SlideShowTick == 0)
                 SlideShowTick = 1800000;
-            UInt32 SlideShowOptions = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowShuffle", 0));
+            UInt32 SlideShowOptions = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowShuffle", DesktopSlideshowDirection.NoShuffle));
             if (SlideShowOptions != 0 && SlideShowOptions != 1)
                 SlideShowOptions = 0;
-            UInt32 SlideShowPosition = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowPosition", 3));
+            UInt32 SlideShowPosition = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowPosition", DesktopWallpaperPosition.Stretch));
             if (SlideShowPosition > 5)
                 SlideShowPosition = 0;
             bool SlideShowEnable = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "SlideShowEnable", 0)) == 1 ? true : false;
@@ -56,26 +65,28 @@ namespace Slide_Show
 
             try
             {
+                Int32 res = 0;
                 if (SlideShowEnable)
                 {
-                    Wallpaper(SlideShowPath, SlideShowTick, SlideShowOptions, (DesktopWallpaperPosition)SlideShowPosition);
+                    res = Wallpaper(SlideShowPath, SlideShowTick, SlideShowOptions, (DesktopWallpaperPosition)SlideShowPosition);
                 }
 
                 if (LockScreenSlideShowEnable)
                 {
                     LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick, LockScreenSlideShowSuffle).Wait();
                 }
-                WriteEventLog("Slide Show exited without error.", EventlogSourceExists);
-                return 0;
+                if (res == SS_OK)
+                    WriteEventLog("Slide Show exited without error.", EventlogSourceExists, (UInt16)(SS_OK));
+                return res;
             }
             catch (Exception ex)
             {
-                WriteEventLog("Slide Show exited with error:\r\n\r\n" + ex.Message, EventlogSourceExists, 101, EventLogEntryType.Error);
-                return 1;
+                WriteEventLog("Slide Show exited with error:\r\n\r\n" + ex.Message, EventlogSourceExists, (UInt16)(SS_ERROR | SS_WALLPAPER | SS_LOCKSCREEN), EventLogEntryType.Error);
+                return SS_ERROR | SS_WALLPAPER | SS_LOCKSCREEN;
             }
         }
 
-        static void Wallpaper(String SlideShowPath, UInt32 SlideShowTick, UInt32 SlideShowOptions, DesktopWallpaperPosition SlideShowPosition)
+        static Int32 Wallpaper(String SlideShowPath, UInt32 SlideShowTick, UInt32 SlideShowOptions, DesktopWallpaperPosition SlideShowPosition)
         {
             try
             {
@@ -93,11 +104,18 @@ namespace Slide_Show
                         pDesktopWallpaper.SetPosition(SlideShowPosition);
                         pDesktopWallpaper.SetSlideshow(pShellItemArray);
                     }
+                    return SS_OK;
+                }
+                else
+                {
+                    WriteEventLog("Configured wallpaper path: \"" + SlideShowPath + "\" not found.\r\n\r\n", EventlogSourceExists, (UInt16)(SS_WARNING | SS_FOLDER | SS_WALLPAPER), EventLogEntryType.Warning);
+                    return SS_ERROR | SS_FOLDER | SS_WALLPAPER;
                 }
             }
             catch (Exception ex)
             {
-                WriteEventLog("Error setting wallpaper:\r\n\r\n" + ex.Message, EventlogSourceExists, 102, EventLogEntryType.Error);
+                WriteEventLog("Error setting wallpaper:\r\n\r\n" + ex.Message, EventlogSourceExists, (UInt16)(SS_ERROR | SS_WALLPAPER), EventLogEntryType.Error);
+                return SS_ERROR | SS_WALLPAPER;
             }
         }
         static async Task LockScreen(String path, UInt32 tick, bool LockScreenSlideShowSuffle)
@@ -127,14 +145,16 @@ namespace Slide_Show
                         await Task.Delay((Int32)tick);
                     }
                 }
+                else
+                    WriteEventLog("Configured lockscreen path is empty: " + path, EventlogSourceExists, (UInt16)(SS_WARNING | SS_FOLDER | SS_LOCKSCREEN), EventLogEntryType.Warning);
             }
             catch (Exception ex)
             {
-                WriteEventLog("Error setting lockscreen:\r\n\r\n" + ex.Message, EventlogSourceExists, 103, EventLogEntryType.Error);
+                WriteEventLog("Error setting lockscreen:\r\n\r\n" + ex.Message, EventlogSourceExists, (UInt16)(SS_ERROR | SS_LOCKSCREEN), EventLogEntryType.Error);
             }
         }
 
-        static void WriteEventLog(String message, bool EventlogSourceExists, Int32 errorcode = 0, EventLogEntryType type = EventLogEntryType.Information)
+        static void WriteEventLog(String message, bool EventlogSourceExists, UInt16 errorcode = 0, EventLogEntryType type = EventLogEntryType.Information)
         {
             EventLog appLog = new EventLog("Application");
             if (EventlogSourceExists)
