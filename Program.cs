@@ -61,7 +61,7 @@ namespace Slide_Show
             if (LockScreenSlideShowTick == 0)
                 LockScreenSlideShowTick = 15000;
             bool LockScreenSlideShowEnable = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowEnable", 0)) == 1 ? true : false;
-            bool LockScreenSlideShowSuffle = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowSuffle", 0)) == 1 ? true : false;
+            bool LockScreenSlideShowShuffle = Convert.ToUInt32(Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Lock Screen", "LockScreenSlideShowShuffle", 0)) == 1 ? true : false;
 
             try
             {
@@ -73,7 +73,7 @@ namespace Slide_Show
 
                 if (LockScreenSlideShowEnable)
                 {
-                    LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick, LockScreenSlideShowSuffle).Wait();
+                    LockScreen(LockScreenSlideShowPath, LockScreenSlideShowTick, LockScreenSlideShowShuffle).Wait();
                 }
                 if (res == SS_OK)
                     WriteEventLog("Slide Show exited without error.", EventlogSourceExists, (UInt16)(SS_OK));
@@ -118,7 +118,7 @@ namespace Slide_Show
                 return SS_ERROR | SS_WALLPAPER;
             }
         }
-        static async Task LockScreen(String path, UInt32 tick, bool LockScreenSlideShowSuffle)
+        static async Task LockScreen(String path, UInt32 tick, bool LockScreenSlideShowShuffle)
         {
             try
             {
@@ -131,7 +131,7 @@ namespace Slide_Show
                 }
                 else if (images.Count > 0)
                 {
-                    if(LockScreenSlideShowSuffle)
+                    if(LockScreenSlideShowShuffle)
                     {
                         var rand = new Random();
                         images = images.OrderBy(x => rand.Next()).ToList();
