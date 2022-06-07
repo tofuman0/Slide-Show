@@ -1,67 +1,105 @@
-<?xml version="1.0" encoding="utf-8"?>
 <policyDefinitions revision="1.0" schemaVersion="1.0">
   <policyNamespaces>
-    <target prefix="desktop" namespace="Microsoft.Policies.WindowsDesktop" />
+    <target prefix="fullarmor" namespace="FullArmor.Policies.EBAC1B52_DC43_4F82_A882_54B7AFFA92A8" />
     <using prefix="windows" namespace="Microsoft.Policies.Windows" />
   </policyNamespaces>
+  <supersededAdm fileName="" />
   <resources minRequiredRevision="1.0" />
-  <supportedOn>
-    <definitions>
-      <definition name="SUPPORTED_Windows10" displayName="$(string.SUPPORTED_Windows10)" />
-    </definitions>
-  </supportedOn>
   <categories>
-    <category name="SlideShow" displayName="$(string.SlideShow)">
-      <parentCategory ref="windows:Desktop" />
-    </category>
+    <category name="CAT_SlideShow" displayName="$(string.CAT_SlideShow)" />
   </categories>
   <policies>
-    <policy name="EnableWallpaper" displayname="$(string.WallpaperEnable)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowEnable">
-	  <parentCategory ref="SlideShow" />
-      <supportedOn ref="windows:SUPPORTED_Windows10" />
-	  <enabledValue>
-        <decimal value="1" />
-      </enabledValue>
-      <disabledValue>
-        <decimal value="0" />
-      </disabledValue>
-	</policy>
-	<policy name="WallpaperPath" displayname="$(string.WallpaperPath)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowPath">
-	  <parentCategory ref="SlideShow" />
-      <supportedOn ref="windows:SUPPORTED_Windows10" />
-	</policy>
-	<policy name="WallpaperTickTime" displayname="$(string.WallpaperTickTime)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowTicks">
-	  <parentCategory ref="SlideShow" />
-      <supportedOn ref="windows:SUPPORTED_Windows10" />
-	</policy>
-	<policy name="WallpaperShuffle" displayname="$(string.WallpaperShuffle)" class="User" required="true" key="Control Panel\Desktop" valueName="SlideShowShuffle">
-	  <parentCategory ref="SlideShow" />
-      <supportedOn ref="windows:SUPPORTED_Windows10" />
-	  <enabledValue>
-        <decimal value="1" />
-      </enabledValue>
-      <disabledValue>
-        <decimal value="0" />
-      </disabledValue>
-	</policy>
-	
-	<policy name="EnableLockscreen" displayname="$(string.LockscreenEnable)" class="User" required="true" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowEnable">
-	  <parentCategory ref="SlideShow" />
-      <supportedOn ref="windows:SUPPORTED_Windows10" />
-	  <enabledValue>
-        <decimal value="1" />
-      </enabledValue>
-      <disabledValue>
-        <decimal value="0" />
-      </disabledValue>
-	</policy>
-	<policy name="LockscreenPath" displayname="$(string.LockscreenPath)" class="User" required="true" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowPath">
-	  <parentCategory ref="SlideShow" />
-      <supportedOn ref="windows:SUPPORTED_Windows10" />
-	</policy>
-	<policy name="LockscreenTickTime" displayname="$(string.LockscreenTickTime)" class="User" required="true" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowTicks">
-	  <parentCategory ref="SlideShow" />
-      <supportedOn ref="windows:SUPPORTED_Windows10" />
-	</policy>
+    <policy name="POL_A969E9B9_1A90_4711_A84D_46C732E2D46C" class="User" displayName="$(string.POL_A969E9B9_1A90_4711_A84D_46C732E2D46C)" presentation="$(presentation.POL_A969E9B9_1A90_4711_A84D_46C732E2D46C)" key="Control Panel\Desktop">
+      <parentCategory ref="CAT_SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />
+      <enabledList>
+        <item key="Control Panel\Desktop" valueName="SlideShowEnable">
+          <value>
+            <decimal value="1" />
+          </value>
+        </item>
+      </enabledList>
+      <disabledList>
+        <item key="Control Panel\Desktop" valueName="SlideShowEnable">
+          <value>
+            <decimal value="0" />
+          </value>
+        </item>
+      </disabledList>
+      <elements>
+        <text id="TXT_AEB45B84_D544_4F38_B7D2_BEBC17267E5D" key="Control Panel\Desktop" valueName="SlideShowPath" required="true" />
+        <decimal id="DXT_F0ECFE1C_D6C9_42A9_B3CA_4A54FE5ABC3A" key="Control Panel\Desktop" valueName="SlideShowTicks" required="true" minValue="1000" maxValue="4294967295" />
+        <boolean id="CHK_4A36963E_A527_402B_AA5C_65426494E759" key="Control Panel\Desktop" valueName="SlideShowShuffle">
+          <trueValue>
+            <decimal value="1" />
+          </trueValue>
+          <falseValue>
+            <decimal value="0" />
+          </falseValue>
+        </boolean>
+        <enum id="DST_13442B55_CED1_4076_A067_FBEDE8331F61" key="Control Panel\Desktop" valueName="SlideShowPosition">
+          <item displayName="$(string.ITM_FBAC3F6B_2CB7_427E_931F_A0FD9FCB2906)">
+            <value>
+              <decimal value="0" />
+            </value>
+          </item>
+          <item displayName="$(string.ITM_9F1DE883_F882_4AAA_8A70_3D1B0F7AD981)">
+            <value>
+              <decimal value="1" />
+            </value>
+          </item>
+          <item displayName="$(string.ITM_680C7696_0743_4905_9AE4_661CAE9D43D6)">
+            <value>
+              <decimal value="2" />
+            </value>
+          </item>
+          <item displayName="$(string.ITM_FB97B5DA_3285_4857_9E98_23CFD953616B)">
+            <value>
+              <decimal value="3" />
+            </value>
+          </item>
+          <item displayName="$(string.ITM_B88083CE_1DFD_4021_A682_89D19C8AB048)">
+            <value>
+              <decimal value="4" />
+            </value>
+          </item>
+          <item displayName="$(string.ITM_A3E08F9D_2B7D_4D99_977A_C9D20A9C9D35)">
+            <value>
+              <decimal value="5" />
+            </value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
+    <policy name="POL_D5D5F8AF_1A6F_4BC8_9B1E_0E887861E9EA" class="User" displayName="$(string.POL_D5D5F8AF_1A6F_4BC8_9B1E_0E887861E9EA)" presentation="$(presentation.POL_D5D5F8AF_1A6F_4BC8_9B1E_0E887861E9EA)" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen">
+      <parentCategory ref="CAT_SlideShow" />
+      <supportedOn ref="windows:SUPPORTED_WindowsVista" />
+      <enabledList>
+        <item key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowEnable">
+          <value>
+            <decimal value="1" />
+          </value>
+        </item>
+      </enabledList>
+      <disabledList>
+        <item key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowEnable">
+          <value>
+            <decimal value="0" />
+          </value>
+        </item>
+      </disabledList>
+      <elements>
+        <text id="TXT_ACCEBD0D_B169_4BA6_ACF0_8B7E48E24C8B" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowPath" required="true" />
+        <decimal id="DXT_8EE724CB_3EAC_4BD7_963B_77D6914E5901" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowTicks" required="true" minValue="1000" maxValue="4294967295" />
+        <boolean id="CHK_2A80B6CF_D4A6_4EB8_9C26_E4AE96523109" key="Software\Microsoft\Windows\CurrentVersion\Lock Screen" valueName="LockScreenSlideShowShuffle">
+          <trueValue>
+            <decimal value="1" />
+          </trueValue>
+          <falseValue>
+            <decimal value="0" />
+          </falseValue>
+        </boolean>
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>
